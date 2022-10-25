@@ -1,1 +1,1 @@
-# vector_sdm_course
+Species distriubtion modelling course for malaria vectors, ICIPE 2022
