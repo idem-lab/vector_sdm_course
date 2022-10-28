@@ -1,6 +1,9 @@
 n.pixel <- 1000
 n.other.spec <- 20
+
+#n.other.spec <- 2
 spec.names <- letters[1:(n.other.spec+1)]
+
 
 ## Geographic covariates affecting species abundance
 x <- matrix(rnorm(2*n.pixel),nrow=n.pixel)
