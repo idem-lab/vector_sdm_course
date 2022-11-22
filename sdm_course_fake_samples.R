@@ -78,45 +78,39 @@ probability_of_presence <- function(relative_abundance,
   
 }
 
-# fake rasters to get the code working - these to be replaced with real ones
+# prepare data 
 
-# fake raster from the terra package
-f <- system.file("ex/elev.tif", package="terra")
-r <- rast(f)
+# load in real data
+load("basic_data.RData")
 
-# mask layer (useful for processing)
-mask <- r * 0
+#specify covariates
+# BIO4 = Temperature Seasonality (standard deviation ×100)
+tseas <- bc_kenya[[4]] 
+# BIO5 = Max Temperature of Warmest Month
+tmax   <- bc_kenya[[5]]
+# BIO7 = Temperature Annual Range (BIO5-BIO6)
+trange <- bc_kenya[[7]]
 
-# make a fake bias layer
-bias <- mask
-cell_ids <- cells(mask)
-bias[cell_ids] <- terra::xFromCell(mask, cell_ids)
-bias <- mask(bias, mask)
-bias <- bias - global(bias, "min", na.rm = TRUE)[1,1]
-bias <- bias / global(bias, "max", na.rm = TRUE)[1,1]
-bias <- bias ^ 2
+covs <- c(tseas, tmax, trange)
+names(covs) <- c("tseas", "tmax", "trange")
 
-# make some fake covariates
-cov_a <- r
-cov_b <- -log(r)
-cov_c <- app(r / global(r, "max", na.rm = TRUE)[1, 1], qlogis)
-covs <- c(cov_a, cov_b, cov_c)
-names(covs) <- c("a", "b", "c")
+# bias layer
+
+bias <- rescale_travel
 
 
 # generate the fake 'true' relative abundance raster
 
 # generate an unscaled relative abundance
-
-rel_abund_unscaled <- exp(-1 + covs$a * 0.1)
+rel_abund_unscaled <- exp(-1 + covs$tmax * 0.1)
 
 # create your own here:
 
 # rel_abund_unscaled <- exp(? +
-#                            covs$a *  ?   +
-#                            covs$b *  ?   +
-#                            covs$c *  ?   + 
-#                            covs$c ^ 2 *   ?  )
+#                            covs$tseas *  ?   +
+#                            covs$tmax *  ?   +
+#                            covs$trange *  ?   + 
+#                            covs$trange ^ 2 *   ?  )
 
 # rescale the relative abundance, from 0 to 1
 rel_abund <- rescale_abundance(rel_abund_unscaled)
@@ -126,7 +120,7 @@ rel_abund <- rescale_abundance(rel_abund_unscaled)
 n_samples <- 100
 
 # random locations all over the country - unweighted sampling
-sample_locations_random <- random_locations(mask,
+sample_locations_random <- random_locations(kenya_mask,
                                             n_samples,
                                             weighted = FALSE)
 
@@ -175,7 +169,7 @@ catches_bias_weighted <- sim_catches(sample_locations = sample_locations_bias_we
                                      relative_abundance = rel_abund)
 occurrence_coords <- crds(catches_bias_weighted[catches_bias_weighted$presence == 1])
 
-plot(mask)
+plot(kenya_mask)
 points(occurrence_coords, pch = 16)
 
 # this is great, but when simulating, it's difficult to get a realistic number
@@ -190,7 +184,7 @@ occurrence_coords <- crds(catches_bias_weighted[catches_bias_weighted$presence =
 
 # number of records
 nrow(occurrence_coords)
-plot(mask)
+plot(kenya_mask)
 points(occurrence_coords, pch = 16)
 
 
