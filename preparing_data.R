@@ -47,7 +47,7 @@ bioclim_kenya <- worldclim_country(
 
 # generate mask of our area of interest so we can use it to process other data into this shape
 kenya_mask <- bioclim_kenya[[1]] %>%
-  mask(kenya_vector) * 0
+  mask(kenya_vector) * 0 + 1
 
 plot(kenya_mask)
 
