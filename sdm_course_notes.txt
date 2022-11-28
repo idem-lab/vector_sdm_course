@@ -70,7 +70,9 @@ prep tasks:
 - create fake bias map - write function to create from eg pop density - do that with stuff from malariaAtlas pkg - GR
 - work out code for:
 	- logistic regression model
-	- tgb
+	- tgb - make fake similar species with simlarish bias
+	 - sampled from bias layer only
+	 - sampled from bias plus covariates
 	- maxent
 	- fithian + bias in surveys
 	- partial response curve (code / functions to do this)
