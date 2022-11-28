@@ -1,6 +1,9 @@
 # preparing data part 2
 
-# should run without part 1 if data/grids/ contains the below rasters, which are on the git repo
+# should run without part 1 if data/grids/ contains the below rasters.
+# as an alternative to runnning script preparing_data_1.R, grids can be
+# downloaded into data/grids from:
+# https://melbourne.figshare.com/articles/dataset/vector_sdm_course_grids/
 
 # load packages
 library(tidyverse)
