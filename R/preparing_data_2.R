@@ -87,4 +87,11 @@ species_df <- rbind(focal_df, widespread_df)
 
 
 # save these items
-
+save(
+  list = c(
+    "widespread_df",
+    "focal_df",
+    "species_df"
+  ),
+  file = "data/point_dfs.RData"
+)
