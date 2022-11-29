@@ -15,6 +15,25 @@ kenya_mask <- terra::rast("data/grids/kenya_mask.tif")
 bc_kenya <- terra::rast("data/grids/bc_kenya.tif")
 rescale_travel <- terra::rast("data/grids/rescale_travel.tif")
 
+# sample random background points
+n_background_points <- 10000
+
+random_points <- terra::spatSample(
+  x = kenya_mask,
+  size = n_background_points,
+  na.rm = TRUE,
+  as.points = TRUE
+)
+
+random_df <- random_points %>%
+  crds() %>%
+  as_tibble() %>%
+  mutate(
+    type = "random"
+  )
+
+
+
 # add fake target species data - make some that are widespread, some that are
 # more restricted (add that information as a column). We can be confident that
 # all have the same sampling bias as the target species (fake species made by
@@ -22,7 +41,8 @@ rescale_travel <- terra::rast("data/grids/rescale_travel.tif")
 
 # sample only biased ones from rescale_travel
 
-# sample biased and environmentally specific ones from rescale_travel and some bioclim variables
+# sample biased and environmentally specific ones from rescale_travel
+# and some bioclim variables
 
 # make two sets of fake species, with different numbers of points
 n_species_each <- 10
