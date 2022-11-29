@@ -79,3 +79,15 @@ probability_of_presence <- function(relative_abundance,
   
 }
 
+rastpointplot <- function(
+  r,
+  v,
+  pch = 16,
+  cex = 0.5
+){
+  
+  plot(r)
+  points(v, pch = pch, cex = cex)
+  
+}
+

@@ -1,0 +1,10 @@
+intended script run order:
+
+functions.R
+...
+
+prepare_raster_data.R
+simulate_data.R
+
+...
+simulate_data_tgb.R

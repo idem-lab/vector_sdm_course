@@ -1,6 +1,12 @@
 library(terra)
 
-# prepare data 
+
+# should run without part 1 if data/grids/ contains the below rasters.
+# as an alternative to runnning script preparing_data_1.R, grids can be
+# downloaded into data/grids from:
+# https://melbourne.figshare.com/articles/dataset/vector_sdm_course_grids/
+# you can do this manually or work out how to in R!
+
 
 # load in real data
 kenya_mask <- terra::rast("data/grids/kenya_mask.tif")
@@ -68,7 +74,7 @@ points(catches_bias_weighted, pch = 21, bg = catches_bias_weighted$presence)
 
 
 
-# random locations, biased as per the relative abundance layer - e.g. targetted
+# random locations, biased as per the relative abundance layer - e.g. targeted
 # to areas of high abundance (where malaria interventions happen?)
 sample_locations_abundance_weighted <- random_locations(rel_abund ^ (1/3),
                                                         n_samples)
