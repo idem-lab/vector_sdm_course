@@ -46,6 +46,7 @@ rel_abund_unscaled <- exp(-1 + covs$tmax * 0.1)
 # rescale the relative abundance, from 0 to 1
 rel_abund <- rescale_abundance(rel_abund_unscaled)
 
+names(rel_abund) <- "relative_abundance"
 
 # sample abundance data at a random set of locations
 n_samples <- 100

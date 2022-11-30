@@ -120,3 +120,12 @@ prplot <- function(prc){
   plot(prc, type = "l")
 }
 
+
+# name prediction layer 
+sdm_predict <- function(
+  model,
+  covariates
+){
+  predict(model, covariates)
+  names(predict) <- "predicted_distribution"
+}
