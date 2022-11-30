@@ -9,6 +9,7 @@
 # load packages
 library(tidyverse)
 library(terra)
+source("R/functions.R")
 
 # read our rasters in
 kenya_mask <- terra::rast("data/grids/kenya_mask.tif")

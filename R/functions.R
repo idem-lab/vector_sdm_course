@@ -114,3 +114,9 @@ make_sdm_data <- function(
     as_tibble
   
 }
+
+# shortcut for partial response plot
+prplot <- function(prc){
+  plot(prc, type = "l")
+}
+

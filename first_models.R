@@ -2,6 +2,8 @@
 library(terra)
 library(tidyverse)
 library(predicts) # remotes::install_github("rspatial/predicts")
+source("R/functions.R")
+
 
 # sample random background points
 n_background_points <- 100
@@ -41,4 +43,28 @@ summary(model_1)
 
 # look at the partial_response
 
-pr1 <- partialRe
+pr1_tseas <- partialResponse(
+  model = model_1,
+  data = sdm_data_1 %>% filter(occ == 1),
+  "tseas"
+)
+
+prplot(pr1_tseas) # something wrong here showing linear correlation
+
+
+pr1_tmax <- partialResponse(
+  model = model_1,
+  data = sdm_data_1 %>% filter(occ == 1),
+  "tseas"
+)
+
+prplot(pr1_tseas) # something wrong here showing linear correlation
+
+
+pr1_tseas <- partialResponse(
+  model = model_1,
+  data = sdm_data_1 %>% filter(occ == 1),
+  "tseas"
+)
+
+plot(pr1_tseas, type = "l") # something wrong here showing linear correlation

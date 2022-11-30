@@ -1,5 +1,5 @@
 library(terra)
-
+source("R/functions.R")
 
 # should run without part 1 if data/grids/ contains the below rasters.
 # as an alternative to runnning script preparing_data_1.R, grids can be
