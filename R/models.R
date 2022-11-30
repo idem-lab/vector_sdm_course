@@ -25,6 +25,7 @@ pa_random_data <- read_csv("data/tabular/presence_absence_random_sampling.csv")
 pa_bias_data <- read_csv("data/tabular/presence_absence_bias_sampling.csv")
 pa_bias_abund_data  <- read_csv("data/tabular/presence_absence_bias_abund_sampling.csv")
 
+species_df <- read_csv("data/tabular/species_df.csv")
 
 # subset bc_keyna to our covariate set (and save this again for ease of use)
 covs <- bc_kenya[[c(4,5,7)]]

@@ -63,8 +63,8 @@ focal_df <- tibble(x = numeric(0),
 
 for(i in seq_len(n_species_each)) {
   
-  which_bioclim <- sample.int(dim(bioclim_kenya)[3], 1)
-  layer <- bioclim_kenya[[which_bioclim]] * rescale_travel
+  which_bioclim <- sample.int(dim(bc_kenya)[3], 1)
+  layer <- bc_kenya[[which_bioclim]] * rescale_travel
   
   layer[] <- layer[] - min(layer[], na.rm = TRUE)
   layer[] <- layer[]/ max(layer[], na.rm = TRUE)
@@ -91,14 +91,7 @@ for(i in seq_len(n_species_each)) {
 
 species_df <- rbind(focal_df, widespread_df)
 
-
-
-# save these items
-save(
-  list = c(
-    "widespread_df",
-    "focal_df",
-    "species_df"
-  ),
-  file = "data/point_dfs.RData"
+write_csv(
+  x = species_df,
+  file = "data/tabular/species_df.csv"
 )
