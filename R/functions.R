@@ -79,6 +79,7 @@ probability_of_presence <- function(relative_abundance,
   
 }
 
+# plot a raster with simple points over it
 rastpointplot <- function(
   r,
   v,
@@ -91,3 +92,25 @@ rastpointplot <- function(
   
 }
 
+
+# combine sdm data from spatial to df
+make_sdm_data <- function(
+  presences,
+  absences,
+  covariates
+){
+  
+  pvals <- extract(covariates, presences)
+  avals <- extract(covariates, absences)
+  
+  rbind(
+    pvals %>%
+      select(-ID) %>%
+      mutate(occ = 1),
+    avals %>%
+      select(-ID) %>%
+      mutate(occ = 0)
+  ) %>%
+    as_tibble
+  
+}
