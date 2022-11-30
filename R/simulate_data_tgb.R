@@ -3,7 +3,7 @@
 # should run without part 1 if data/grids/ contains the below rasters.
 # as an alternative to runnning script preparing_data_1.R, grids can be
 # downloaded into data/grids from:
-# https://melbourne.figshare.com/articles/dataset/vector_sdm_course_grids/
+# https://doi.org/10.26188/21630146.v1 
 # you can do this manually or work out how to in R!
 
 # load packages
