@@ -56,6 +56,8 @@ sim_catches <- function(sample_locations,
 
 # given an unscaled relative abundance raster, scale it to have maximum value of 1 
 rescale_abundance <- function(unscaled_abundance) {
+  min_value <- global(unscaled_abundance, "min", na.rm = TRUE)[1, 1]
+  unscaled_abundance <- unscaled_abundance - min_value + 0.00001
   max_value <- global(unscaled_abundance, "max", na.rm = TRUE)[1, 1]
   unscaled_abundance / max_value
 }
@@ -100,8 +102,8 @@ make_sdm_data <- function(
   covariates
 ){
   
-  pvals <- extract(covariates, presences)
-  avals <- extract(covariates, absences)
+  pvals <- terra::extract(covariates, presences)
+  avals <- terra::extract(covariates, absences)
   
   rbind(
     pvals %>%
@@ -115,17 +117,120 @@ make_sdm_data <- function(
   
 }
 
-# shortcut for partial response plot
-prplot <- function(prc){
-  plot(prc, type = "l")
-}
-
 
 # name prediction layer 
 sdm_predict <- function(
   model,
   covariates
 ){
-  predict(model, covariates)
-  names(predict) <- "predicted_distribution"
+  prediction <- predict(covariates, model, na.rm = TRUE)
+  names(prediction) <- "predicted_distribution"
+  
+  return(prediction)
 }
+
+# function to take presence only and background data
+# and covariate rasters and form into a data frame 
+# for modelling
+model_data_presence_only <- function(
+  presences,
+  absences,
+  covariates
+){
+  
+  pvals <- terra::extract(covariates, presences)
+  avals <- terra::extract(covariates, absences)
+  
+  rbind(
+    pvals %>%
+      select(-ID) %>%
+      mutate(presence = 1),
+    avals %>%
+      select(-ID) %>%
+      mutate(presence = 0)
+  ) %>%
+    as_tibble
+  
+}
+
+# function to take presence absence data
+# and covariate rasters and form into a data frame 
+# for modelling
+
+model_data_presence_absence <- function(
+  pa_data,
+  covariates
+){
+  
+  vals <- terra::extract(
+    covariates,
+    pa_data %>%
+      select(x, y)
+  )
+  
+  cbind(
+    pa_data %>%
+      select(-x, -y),
+    vals %>%
+      select(-ID)
+  ) %>%
+    as_tibble
+  
+}
+
+
+
+# fit a partial response curve
+partial_response <- function (model, data, var, type = c("response", "link"), rng = NULL, nsteps = 25) {
+  
+  type <- match.arg(type)
+  if (missing(var)) {
+    var <- names(data)[1]
+  }
+  else if (is.numeric(var)) {
+    stopifnot(var > 0 & var <= ncol(data))
+    var <- names(data)[var]
+  }
+  else {
+    stopifnot(var %in% names(data))
+  }
+  if (is.factor(data[[var]])) {
+    steps <- levels(data[[var]])
+  }
+  else {
+    if (is.null(rng)) {
+      rng <- range(data[[var]])
+    }
+    increment <- (rng[2] - rng[1])/(nsteps - 2)
+    steps <- seq(rng[1] - increment, rng[2] + increment, 
+                 increment)
+  }
+  res <- rep(NA, length(steps))
+  for (i in 1:length(steps)) {
+    data[[var]] <- steps[i]
+    p <- predict(model, data, type = type)
+    res[i] <- mean(p)
+  }
+  x <- data.frame(steps, res)
+  names(x) <- c("var", "p")
+  x
+}
+
+# plot partial response curve
+partial_response_plot <- function(
+  model,
+  data,
+  var
+){
+  plot(
+    partial_response(
+      model = model,
+      data = data,
+      var = var
+    ),
+    type = "l"
+  )
+}
+
+
+

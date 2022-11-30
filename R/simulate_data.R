@@ -2,7 +2,7 @@ library(terra)
 source("R/functions.R")
 
 # should run without part 1 if data/grids/ contains the below rasters.
-# as an alternative to runnning script preparing_data_1.R, grids can be
+# as an alternative to running script preparing_data_1.R, grids can be
 # downloaded into data/grids from:
 # https://doi.org/10.26188/21630146.v1 
 # you can do this manually or work out how to in R!
@@ -26,27 +26,40 @@ covs <- c(tseas, tmax, trange)
 names(covs) <- c("tseas", "tmax", "trange")
 
 # bias layer
+bias <- rescale_travel ^ 2
+names(bias) <- "bias"
 
-bias <- rescale_travel
-
+terra::writeRaster(
+  x = bias,
+  filename = "data/grids/bias.tif"
+)
 
 # generate the fake 'true' relative abundance raster
 
 # generate an unscaled relative abundance
-rel_abund_unscaled <- exp(-1 + covs$tmax * 0.1)
+# rel_abund_unscaled <- exp(-1 + covs$tmax * 0.1)
+# 
+# plot(rel_abund_unscaled)
 
 # create your own here:
 
-# rel_abund_unscaled <- exp(? +
-#                            covs$tseas *  ?   +
-#                            covs$tmax *  ?   +
-#                            covs$trange *  ?   + 
-#                            covs$trange ^ 2 *   ?  )
+rel_abund_unscaled <- exp(1 +
+                            covs$tseas * -0.01 +
+                            covs$tmax * -0.03 +
+                            covs$trange * -0.01 + 
+                            covs$trange ^ 2 * 0.02)
 
 # rescale the relative abundance, from 0 to 1
 rel_abund <- rescale_abundance(rel_abund_unscaled)
 
 names(rel_abund) <- "relative_abundance"
+
+plot(rel_abund)
+
+terra::writeRaster(
+  x = rel_abund,
+  filename = "data/grids/rel_abund.tif"
+)
 
 # sample abundance data at a random set of locations
 n_samples <- 100
@@ -56,24 +69,29 @@ sample_locations_random <- random_locations(kenya_mask,
                                             n_samples,
                                             weighted = FALSE)
 
+plot(rel_abund)
+points(sample_locations_random)
+
 catches_random <- sim_catches(sample_locations = sample_locations_random,
-                              relative_abundance = rel_abund)
+                              relative_abundance = rel_abund,
+                              max_average_catch_size = 100)
 
 plot(rel_abund)
 points(catches_random, pch = 21, bg = catches_random$presence)
 
-
 # random locations, biased as per the bias layer - e.g. convenience samples
 sample_locations_bias_weighted <- random_locations(bias,
                                                    n_samples)
-
+plot(bias)
+points(sample_locations_bias_weighted, pch = 16)
 catches_bias_weighted <- sim_catches(sample_locations = sample_locations_bias_weighted,
-                                     relative_abundance = rel_abund)
+                                     relative_abundance = rel_abund,
+                                     max_average_catch_size = 100)
 
 plot(rel_abund)
 points(catches_bias_weighted, pch = 21, bg = catches_bias_weighted$presence)
 
-
+ 
 
 # random locations, biased as per the relative abundance layer - e.g. targeted
 # to areas of high abundance (where malaria interventions happen?)
@@ -81,7 +99,8 @@ sample_locations_abundance_weighted <- random_locations(rel_abund ^ (1/3),
                                                         n_samples)
 
 catches_abundance_weighted <- sim_catches(sample_locations = sample_locations_abundance_weighted,
-                                          relative_abundance = rel_abund)
+                                          relative_abundance = rel_abund,
+                                          max_average_catch_size = 100)
 
 plot(rel_abund)
 points(catches_abundance_weighted,
@@ -98,7 +117,8 @@ points(catches_abundance_weighted,
 sample_locations_bias_weighted <- random_locations(bias,
                                                    n_samples)
 catches_bias_weighted <- sim_catches(sample_locations = sample_locations_bias_weighted,
-                                     relative_abundance = rel_abund)
+                                     relative_abundance = rel_abund,
+                                     max_average_catch_size = 100)
 occurrence_coords <- crds(catches_bias_weighted[catches_bias_weighted$presence == 1])
 
 plot(kenya_mask)
@@ -109,9 +129,10 @@ points(occurrence_coords, pch = 16)
 # sampling locations (n_samples in the code above) until it looks good:
 
 sample_locations_bias_weighted <- random_locations(bias,
-                                                   2000)  # <- change this number
+                                                   200)  # <- change this number
 catches_bias_weighted <- sim_catches(sample_locations = sample_locations_bias_weighted,
-                                     relative_abundance = rel_abund)
+                                     relative_abundance = rel_abund,
+                                     max_average_catch_size = 100)
 occurrence_coords <- crds(catches_bias_weighted[catches_bias_weighted$presence == 1])
 
 # number of records
@@ -128,10 +149,14 @@ points(occurrence_coords, pch = 16)
 # the average number. It is the probability of observing one *or more*
 # mosquitoes in the catch. 
 
-prob_present <- probability_of_presence(rel_abund)
+prob_present <- probability_of_presence(rel_abund, max_average_catch_size = 100)
+names(prob_present) <- "prob_present"
 plot(prob_present)
 
 reported_occurrence_rate <- bias * prob_present
+names(reported_occurrence_rate) <- "rep_occ_rate"
+
+plot(reported_occurrence_rate)
 n_occurrences <- 100
 sample_locations_bias_weighted <- random_locations(reported_occurrence_rate,
                                                    n_occurrences)
@@ -140,3 +165,92 @@ sample_locations_bias_weighted <- random_locations(reported_occurrence_rate,
 plot(reported_occurrence_rate)
 points(sample_locations_bias_weighted, pch = 16)
 
+plot(
+  c(
+    rel_abund,
+    prob_present,
+    reported_occurrence_rate,
+    bias
+  )
+)
+
+terra::writeRaster(
+  x = prob_present,
+  filename = "data/grids/prob_present.tif"
+)
+
+terra::writeRaster(
+  x = reported_occurrence_rate,
+  filename = "data/grids/reported_occurrence_rate.tif"
+)
+
+dir.create("data/tabular")
+# save occurrence data
+
+# presence_only
+write.csv(
+  x = occurrence_coords,
+  file = "data/tabular/presence_only_data.csv",
+  row.names = FALSE
+)
+
+# format presence absence data
+
+# presence-absence data with sampling locations randomly selected
+pa_random_data <- as_tibble(catches_random) %>%
+  dplyr::select(count, presence) %>%
+  bind_cols(as_tibble(crds(catches_random)))
+
+# # non-tidyverse way
+# pa_random_occurrence <- as.data.frame(catches_random)
+# pa_random_occurrence <- pa_random_occurrence[, c("count", "presence")]
+# pa_random_coords <- as.data.frame(crds(catches_random))
+# pa_random_data <- cbind(
+#   pa_random_occurrence,
+#   pa_random_coords
+# )
+
+write.csv(
+  x = pa_random_data,
+  file = "data/tabular/presence_absence_random_sampling.csv",
+  row.names = FALSE
+)
+
+# presence-absence data with sampling locations biased towards areas closer to
+# major cities
+pa_bias_data <- as_tibble(catches_bias_weighted) %>%
+  dplyr::select(count, presence) %>%
+  bind_cols(as_tibble(crds(catches_bias_weighted)))
+
+write.csv(
+  x = pa_bias_data,
+  file = "data/tabular/presence_absence_bias_sampling.csv",
+  row.names = FALSE
+)
+
+# presence-absence data with sampling locations biased towards areas with higher
+# abundance
+pa_bias_abund_data <- as_tibble(catches_abundance_weighted) %>%
+  dplyr::select(count, presence) %>%
+  bind_cols(as_tibble(crds(catches_abundance_weighted)))
+
+write.csv(
+  x = pa_bias_abund_data,
+  file = "data/tabular/presence_absence_bias_abund_sampling.csv",
+  row.names = FALSE
+)
+
+# to do:
+
+# output 4x rasters:
+#  rel_abund
+#  prob_present,
+#  bias
+#  reported_occurrence_rate
+
+# output 4x datasets:
+#  occurrence_coords (presence-only coordinates biased towards major cities)
+#  pa_random_data (presence-absence, locations randomly sampled)
+#  pa_bias_data (presence-absence, locations biased towards major cities)
+#  pa_bias_abund_data (presence-absence, locations biased towards higher
+#      abundance areas)
