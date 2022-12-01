@@ -139,7 +139,8 @@ data_po_random_bg
 
 model_po_random_bg_maxent <- maxnet(
   p = data_po_random_bg$presence,
-  data = data_po_random_bg %>% select(-presence)
+  data = data_po_random_bg %>% select(-presence),
+  addsamplestobackground = FALSE # already created them
 )
 
 
@@ -175,12 +176,28 @@ maxent_bias <- log(maxent_bias_df$bias)
 
 # model in maxnet
 
-maxnet(
+model_po_random_bg_maxent_bias <- maxnet(
   p = data_po_random_bg$presence,
   data = data_po_random_bg %>% select(-presence),
-  offset = maxent_bias
+  offset = maxent_bias %>% as.matrix(),
+  addsamplestobackground = FALSE # becase we have included background
 )
 
-# Error: offset should have the same number of values as observations in
-# binomial/multinomial call to glmnet
 
+# partial response of each variable
+# different for maxnet than the glms
+plot(model_po_random_bg_maxent_bias, "tseas")
+# do others!
+
+
+# predict our distribution based on our model and covariates
+pred_po_random_bg_maxent_bias <- sdm_predict(
+  model = model_po_random_bg_maxent_bias,
+  covariates = covs
+)
+
+# plot it
+plot(pred_po_random_bg_maxent_bias)
+
+
+### Model:presence-only with maxnet 
