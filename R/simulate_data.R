@@ -129,7 +129,7 @@ points(occurrence_coords, pch = 16)
 # sampling locations (n_samples in the code above) until it looks good:
 
 sample_locations_bias_weighted <- random_locations(bias,
-                                                   200)  # <- change this number
+                                                   2000)  # <- change this number
 catches_bias_weighted <- sim_catches(sample_locations = sample_locations_bias_weighted,
                                      relative_abundance = rel_abund,
                                      max_average_catch_size = 100)

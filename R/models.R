@@ -96,7 +96,7 @@ plot(c(prob_present, pred_pa_random_logistic))
 # with random background 
 
 # sample random background points
-n_background_points <- 100
+n_background_points <- 10000
 
 random_bg <- terra::spatSample(
   x = kenya_mask,
@@ -167,6 +167,11 @@ data_po_random_bg
 model_po_random_bg_maxent <- maxnet(
   p = data_po_random_bg$presence,
   data = data_po_random_bg %>% select(-presence),
+  f = maxnet.formula(
+    p = data_po_random_bg$presence,
+    data = data_po_random_bg %>% select(-presence),
+    classes = "lqp"
+  ),
   addsamplestobackground = FALSE # already created them
 )
 
@@ -195,18 +200,27 @@ plot(c(pred_po_random_bg_logistic, pred_po_random_bg_maxent))
 plot(c(prob_present, pred_pa_random_logistic,
        pred_po_random_bg_logistic, pred_po_random_bg_maxent))
 
+plot(c(prob_present, pred_pa_random_logistic,
+       pred_po_random_bg_maxent, reported_occurrence_rate))
 
-### Model:presence-only with maxnet (R version of maxent) with bias layer
+
+
+
+### Model:presence-only with maxnet (R version of maxent)
+# with bias layer
 
 #use the presence only and random background again
 data_po_random_bg
 
 # extract bias values from presence and backgroud locations
+names(bias) <- "bias"
 maxent_bias_df <-  model_data_presence_only(
   presences = occurrence_coords,
   absences = random_bg,
   covariates = bias
 )
+
+
 # log them and create vector
 maxent_bias <- log(maxent_bias_df$bias)
 
@@ -216,6 +230,11 @@ model_po_random_bg_maxent_bias <- maxnet(
   p = data_po_random_bg$presence,
   data = data_po_random_bg %>% select(-presence),
   offset = maxent_bias %>% as.matrix(),
+  f = maxnet.formula(
+    p = data_po_random_bg$presence,
+    data = data_po_random_bg %>% select(-presence),
+    classes = "lqp"
+  ),
   addsamplestobackground = FALSE # becase we have included background
 )
 
@@ -223,6 +242,8 @@ model_po_random_bg_maxent_bias <- maxnet(
 # partial response of each variable
 # different for maxnet than the glms
 plot(model_po_random_bg_maxent_bias, "tseas")
+plot(model_po_random_bg_maxent_bias, "tmax")
+plot(model_po_random_bg_maxent_bias, "trange")
 # do others!
 
 
@@ -235,6 +256,19 @@ pred_po_random_bg_maxent_bias <- sdm_predict(
 # plot it
 plot(pred_po_random_bg_maxent_bias)
 
+plot(c(pred_po_random_bg_maxent, pred_po_random_bg_maxent_bias))
+
+plot(c(prob_present,
+  pred_po_random_bg_maxent,
+  pred_po_random_bg_maxent_bias,
+  reported_occurrence_rate))
+
+
+
+
+
+
+
 
 ### Model: glm with target group-background
 
@@ -245,38 +279,102 @@ occurrence_coords
 # this time we will use other species as "absences"
 species_df
 
-
-
 data_po_tgb_all <- model_data_presence_only(
   presences = occurrence_coords,
-  absences = species_df %>% dplyr::select(x, y),
+  absences = species_df %>%
+    filter(type == "focal") %>%
+    dplyr::select(x, y),
   covariates = covs
 )
 
 
-# fit a simple model!
-model_po_tgb_logistic <- glm(
-  presence ~ tseas + tmax + trange,
-  data = data_po_tgb_all,
-  family = binomial()
-)
-summary(model_po_tgb_logistic)
 
-# partial response of each variable
-partial_response_plot(
-  model = model_po_tgb_logistic,
-  data = data_po_tgb_all,
-  var = "tmax"
+
+# maxent with target group background (and not bias)
+
+model_po_tbg_maxent <- maxnet(
+  p = data_po_tgb_all$presence,
+  data = data_po_tgb_all %>% select(-presence),
+  f = maxnet.formula(
+    p = data_po_tgb_all$presence,
+    data = data_po_tgb_all %>% select(-presence),
+    classes = "lqp"
+  ),
+  addsamplestobackground = FALSE # becase we have included background
 )
+summary(model_po_tbg_maxent)
 
 # predict our distribution based on our model and covariates
-pred_po_tgb_logistic <- sdm_predict(
-  model = model_po_tgb_logistic,
+pred_po_tgb_maxent <- sdm_predict(
+  model = model_po_tbg_maxent,
   covariates = covs
 )
 
 # plot it
-plot(pred_po_tgb_logistic)
+plot(pred_po_tgb_maxent)
 
 # now compare that prediction with the truth
-plot(c(pred_pa_random_logistic, pred_po_tgb_logistic))
+plot(c(prob_present,
+       pred_po_random_bg_maxent,
+       pred_po_random_bg_maxent_bias,
+       pred_po_tgb_maxent))
+
+
+
+### Model: correlated predictor variables
+
+covs_correlated <- bc_kenya[[c(1,5,12)]]
+names(covs_correlated) <- c("tmean", "tmax", "precip")
+plot(covs_correlated)
+
+pa_random_data
+
+data_pa_random_correlated <- model_data_presence_absence(
+  pa_data = pa_random_data,
+  covariates = covs_correlated
+)
+
+data_pa_random_correlated
+
+# fit a simple model!
+model_pa_random_correlated_logistic <- glm(
+  presence ~  precip,
+  data = data_pa_random_correlated,
+  family = binomial()
+)
+summary(model_pa_random_correlated_logistic)
+
+
+# plot the partial responses for each
+# predictor variable (covariate)
+partial_response_plot(
+  model = model_pa_random_correlated_logistic,
+  data = data_pa_random_correlated,
+  var = "tmax"
+)
+# now do
+# tseas
+# trange
+partial_response_plot(
+  model = model_pa_random_correlated_logistic,
+  data = data_pa_random_correlated,
+  var = "tmean"
+)
+partial_response_plot(
+  model = model_pa_random_correlated_logistic,
+  data = data_pa_random_correlated,
+  var = "precip"
+)
+
+# predict our distribution based on our model
+# and covariates
+pred_pa_random_correlated_logistic <- sdm_predict(
+  model = model_pa_random_correlated_logistic,
+  covariates = covs_correlated
+)
+
+# plot it
+plot(pred_pa_random_correlated_logistic)
+
+
+plot(c(prob_present, pred_pa_random_correlated_logistic))
