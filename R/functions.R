@@ -107,10 +107,10 @@ make_sdm_data <- function(
   
   rbind(
     pvals %>%
-      select(-ID) %>%
+      dplyr::select(-ID) %>%
       mutate(occ = 1),
     avals %>%
-      select(-ID) %>%
+      dplyr::select(-ID) %>%
       mutate(occ = 0)
   ) %>%
     as_tibble
@@ -121,10 +121,21 @@ make_sdm_data <- function(
 # name prediction layer 
 sdm_predict <- function(
   model,
-  covariates
+  covariates,
+  type = NULL,
+  layer_name = "predicted_distribution"
 ){
-  prediction <- predict(covariates, model, na.rm = TRUE)
-  names(prediction) <- "predicted_distribution"
+  
+  if(is.null(type)){
+    if (inherits(model, "maxnet")) {
+      type <- "logistic"
+    } else {
+      type <- "response"
+    }
+  }
+  
+  prediction <- predict(covariates, model, na.rm = TRUE, type = type)
+  names(prediction) <- layer_name
   
   return(prediction)
 }
@@ -143,10 +154,10 @@ model_data_presence_only <- function(
   
   rbind(
     pvals %>%
-      select(-ID) %>%
+      dplyr::select(-ID) %>%
       mutate(presence = 1),
     avals %>%
-      select(-ID) %>%
+      dplyr::select(-ID) %>%
       mutate(presence = 0)
   ) %>%
     as_tibble
@@ -165,14 +176,14 @@ model_data_presence_absence <- function(
   vals <- terra::extract(
     covariates,
     pa_data %>%
-      select(x, y)
+      dplyr::select(x, y)
   )
   
   cbind(
     pa_data %>%
-      select(-x, -y),
+      dplyr::select(-x, -y),
     vals %>%
-      select(-ID)
+      dplyr::select(-ID)
   ) %>%
     as_tibble
   

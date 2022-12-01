@@ -173,6 +173,7 @@ plot(
     bias
   )
 )
+points(occurrence_coords, cex = 0.2)
 
 terra::writeRaster(
   x = prob_present,

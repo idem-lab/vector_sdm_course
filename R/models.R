@@ -39,6 +39,8 @@ terra::writeRaster(
 
 ### Model: logistic regression of random presence-absence data
 
+pa_random_data
+
 data_pa_random <- model_data_presence_absence(
   pa_data = pa_random_data,
   covariates = covs
@@ -55,7 +57,8 @@ model_pa_random_logistic <- glm(
 summary(model_pa_random_logistic)
 
 
-# plot the partial responses for each predictor variable (covariate)
+# plot the partial responses for each
+# predictor variable (covariate)
 partial_response_plot(
   model = model_pa_random_logistic,
   data = data_pa_random,
@@ -64,9 +67,20 @@ partial_response_plot(
 # now do
 # tseas
 # trange
+partial_response_plot(
+  model = model_pa_random_logistic,
+  data = data_pa_random,
+  var = "tseas"
+)
 
+partial_response_plot(
+  model = model_pa_random_logistic,
+  data = data_pa_random,
+  var = "trange"
+)
 
-# predict our distribution based on our model and covariates
+# predict our distribution based on our model
+# and covariates
 pred_pa_random_logistic <- sdm_predict(
   model = model_pa_random_logistic,
   covariates = covs
@@ -77,8 +91,9 @@ plot(pred_pa_random_logistic)
 
 #compare it with the truth
 plot(c(rel_abund, prob_present, pred_pa_random_logistic))
-
-### Model: logistic regression of presence-only data with random background 
+plot(c(prob_present, pred_pa_random_logistic))
+### Model: logistic regression of presence-only data
+# with random background 
 
 # sample random background points
 n_background_points <- 100
@@ -117,7 +132,17 @@ partial_response_plot(
   var = "tmax"
 )
 # do others!
+partial_response_plot(
+  model = model_po_random_bg_logistic,
+  data = data_po_random_bg,
+  var = "tseas"
+)
 
+partial_response_plot(
+  model = model_po_random_bg_logistic,
+  data = data_po_random_bg,
+  var = "trange"
+)
 # predict our distribution based on our model and covariates
 pred_po_random_bg_logistic <- sdm_predict(
   model = model_po_random_bg_logistic,
@@ -127,7 +152,9 @@ pred_po_random_bg_logistic <- sdm_predict(
 # plot it
 plot(pred_po_random_bg_logistic)
 
+plot(c(pred_pa_random_logistic, pred_po_random_bg_logistic))
 # now compare that prediction with the truth
+plot(c(prob_present, pred_pa_random_logistic, pred_po_random_bg_logistic, reported_occurrence_rate))
 
 
 ### Model:presence-only with maxnet (R version of maxent)
@@ -147,6 +174,10 @@ model_po_random_bg_maxent <- maxnet(
 # partial response of each variable
 # different for maxnet than the glms
 plot(model_po_random_bg_maxent, "tseas")
+
+plot(model_po_random_bg_maxent, "tmax")
+
+plot(model_po_random_bg_maxent, "trange")
 # do others!
 
 
@@ -158,6 +189,11 @@ pred_po_random_bg_maxent <- sdm_predict(
 
 # plot it
 plot(pred_po_random_bg_maxent)
+
+plot(c(pred_po_random_bg_logistic, pred_po_random_bg_maxent))
+
+plot(c(prob_present, pred_pa_random_logistic,
+       pred_po_random_bg_logistic, pred_po_random_bg_maxent))
 
 
 ### Model:presence-only with maxnet (R version of maxent) with bias layer
@@ -200,4 +236,47 @@ pred_po_random_bg_maxent_bias <- sdm_predict(
 plot(pred_po_random_bg_maxent_bias)
 
 
-### Model:presence-only with maxnet 
+### Model: glm with target group-background
+
+# our data
+# presences
+occurrence_coords
+
+# this time we will use other species as "absences"
+species_df
+
+
+
+data_po_tgb_all <- model_data_presence_only(
+  presences = occurrence_coords,
+  absences = species_df %>% dplyr::select(x, y),
+  covariates = covs
+)
+
+
+# fit a simple model!
+model_po_tgb_logistic <- glm(
+  presence ~ tseas + tmax + trange,
+  data = data_po_tgb_all,
+  family = binomial()
+)
+summary(model_po_tgb_logistic)
+
+# partial response of each variable
+partial_response_plot(
+  model = model_po_tgb_logistic,
+  data = data_po_tgb_all,
+  var = "tmax"
+)
+
+# predict our distribution based on our model and covariates
+pred_po_tgb_logistic <- sdm_predict(
+  model = model_po_tgb_logistic,
+  covariates = covs
+)
+
+# plot it
+plot(pred_po_tgb_logistic)
+
+# now compare that prediction with the truth
+plot(c(pred_pa_random_logistic, pred_po_tgb_logistic))
