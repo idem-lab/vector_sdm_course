@@ -338,7 +338,7 @@ data_pa_random_correlated
 
 # fit a simple model!
 model_pa_random_correlated_logistic <- glm(
-  presence ~  precip,
+  presence ~  tmean + tmax + precip,
   data = data_pa_random_correlated,
   family = binomial()
 )
