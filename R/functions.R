@@ -95,27 +95,29 @@ rastpointplot <- function(
 }
 
 
-# combine sdm data from spatial to df
-make_sdm_data <- function(
-  presences,
-  absences,
-  covariates
-){
-  
-  pvals <- terra::extract(covariates, presences)
-  avals <- terra::extract(covariates, absences)
-  
-  rbind(
-    pvals %>%
-      dplyr::select(-ID) %>%
-      mutate(occ = 1),
-    avals %>%
-      dplyr::select(-ID) %>%
-      mutate(occ = 0)
-  ) %>%
-    as_tibble
-  
-}
+# # combine sdm data from spatial to df
+# make_sdm_data <- function(
+#   presences,
+#   absences,
+#   covariates
+# ){
+#   
+#   pvals <- terra::extract(covariates, presences)
+#   avals <- terra::extract(covariates, absences)
+#   
+#   rbind(
+#     pvals %>%
+#       as_tibble %>%
+#       dplyr::select(-ID) %>%
+#       mutate(occ = 1),
+#     avals %>%
+#       as_tibble %>%
+#       dplyr::select(-ID) %>%
+#       mutate(occ = 0)
+#   ) %>%
+#     as_tibble
+#   
+# }
 
 
 # name prediction layer 
@@ -154,9 +156,11 @@ model_data_presence_only <- function(
   
   rbind(
     pvals %>%
+      as_tibble %>%
       dplyr::select(-ID) %>%
       mutate(presence = 1),
     avals %>%
+      as_tibble %>%
       dplyr::select(-ID) %>%
       mutate(presence = 0)
   ) %>%
@@ -183,6 +187,7 @@ model_data_presence_absence <- function(
     pa_data %>%
       dplyr::select(-x, -y),
     vals %>%
+      as_tibble %>%
       dplyr::select(-ID)
   ) %>%
     as_tibble
