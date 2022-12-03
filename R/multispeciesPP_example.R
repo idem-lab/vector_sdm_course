@@ -1,3 +1,5 @@
+library(multispeciesPP)
+
 n.pixel <- 1000
 n.other.spec <- 20
 
