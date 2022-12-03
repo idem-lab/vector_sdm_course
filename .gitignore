@@ -5,3 +5,4 @@
 /data
 *.RData
 *.DS_Store
+*.html
