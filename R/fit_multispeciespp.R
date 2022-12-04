@@ -14,27 +14,21 @@ source("R/functions.R")
 # load rasters for fitting
 kenya_mask <- terra::rast("data/grids/kenya_mask.tif")
 rescale_travel <- terra::rast("data/grids/rescale_travel.tif")
-covs <- terra::rast("data/grids/covariates.tif")
+covs <- terra::rast("data/grids/covs_mspp.tif")
 
 # rasters for comparison
 prob_present <- terra::rast("data/grids/prob_present_mspp.tif")
-names(prob_present) <- "prob_present"
-ext(prob_present) <- ext(kenya_mask)
+# names(prob_present) <- "prob_present"
+# ext(prob_present) <- ext(kenya_mask)
 rep_occ_rate <- terra::rast("data/grids/reported_occurrence_rate_mspp.tif")
-names(rep_occ_rate) <- "rep_occ_rate"
-ext(rep_occ_rate) <- ext(kenya_mask)
+# names(rep_occ_rate) <- "rep_occ_rate"
+# ext(rep_occ_rate) <- ext(kenya_mask)
 
 # load the presence-absence and presence-only data for the target and other species
 
 # for the target species
 pa_target_species <- read.csv("data/tabular/presence_absence_random_sampling.csv")
 po_target_species <- read.csv("data/tabular/presence_only_points.csv")
-
-pa_target_species <- pa_target_species %>%
-  mutate(
-    site_id = row_number(),
-    .before = everything()
-  )
 
 # for other species with the same bias
 pa_other_species <- read.csv("data/tabular/other_species_pa_data.csv")
@@ -102,7 +96,6 @@ pa_data <- pa_target_species %>%
   bind_cols(
     pa_covariates, .)
 
-
 # presence-only data should be a named list, with the species names, containing
 # the covariate values for both the distribution and bias models at the
 # occurrence locations
@@ -111,34 +104,39 @@ pa_data <- pa_target_species %>%
 
 covs_and_bias <- c(covs, rescale_travel)
 
-# extract for target
-po_covs_target_species <- po_target_species %>%
-  terra::extract(covs_and_bias, .) %>%
-    select(-ID)
+po_all_species <- bind_rows(
+  po_target_species %>%
+    mutate(species_id = "target"),
+  po_other_species
+)
 
-# extract for other species, then convert to a list (this is ugly!)
-po_covs_other_species_list <- po_other_species %>%
+po_covs_all_species <- po_all_species %>%
   select(x, y) %>%
   terra::extract(covs_and_bias, .) %>%
   select(-ID) %>%
-  mutate(species_id = po_other_species$species_id) %>%
+  mutate(species_id = po_all_species$species_id)
+
+# convert to a named list
+po_covs_all_species_list <- po_covs_all_species %>%
   group_by(species_id) %>%
   summarise(named_vec = list(.)) %>%
-  deframe()
+  deframe() %>%
+  lapply(ungroup)
 
-po_covs_other_species_list <- lapply(po_covs_other_species_list,
-                                     ungroup)
+# subset each one
+po_covs_all_species_list <- mapply(
+  function(name, tibble) {
+    filter(tibble, species_id == name)
+  },
+  names(po_covs_all_species_list),
+  po_covs_all_species_list,
+  SIMPLIFY = FALSE
+)
 
-po_covs_other_species_list <- lapply(po_covs_other_species_list,
-                                     select, -species_id)
-
-# combine these
-po_data_list <- c(list(target = po_covs_target_species), po_covs_other_species_list)
-
-
+# background coordinate values
 bg <- terra::extract(covs_and_bias, random_bg_coords)
 
-n_pa_obs <- 20
+n_pa_obs <- 50
 pa_data_keep_idx <- sample.int(nrow(pa_data), n_pa_obs)
 
 full.mod <- multispeciesPP(sdm.formula = ~ tseas + tmax + trange,
