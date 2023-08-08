@@ -27,3 +27,5 @@ This other paper of Jane Elith’s talks about how to model species that are in 
 
 And this *other* paper by Jane Elith describes the statistical model of maxent and talks about how  decisions you need to make in fitting your model in maxent. It's a must read for using maxent for SDMs.
 <https://doi.org/10.1111/j.1472-4642.2010.00725.x>
+
+This paper by many leading lights in the SDM space describes a standardising protocol for reporting species distribution analyses --- the ODMAP protocol. <https://doi.org/10.1111/ecog.04960>
