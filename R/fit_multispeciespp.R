@@ -15,14 +15,17 @@ source("R/functions.R")
 kenya_mask <- terra::rast("data/grids/kenya_mask.tif")
 rescale_travel <- terra::rast("data/grids/rescale_travel.tif")
 covs <- terra::rast("data/grids/covs_mspp.tif")
+ext(covs) <- ext(kenya_mask)
+crs(covs) <- crs(kenya_mask)
+
 
 # rasters for comparison
 prob_present <- terra::rast("data/grids/prob_present_mspp.tif")
-# names(prob_present) <- "prob_present"
-# ext(prob_present) <- ext(kenya_mask)
+names(prob_present) <- "prob_present"
+ext(prob_present) <- ext(kenya_mask)
 rep_occ_rate <- terra::rast("data/grids/reported_occurrence_rate_mspp.tif")
-# names(rep_occ_rate) <- "rep_occ_rate"
-# ext(rep_occ_rate) <- ext(kenya_mask)
+names(rep_occ_rate) <- "rep_occ_rate"
+ext(rep_occ_rate) <- ext(kenya_mask)
 
 # load the presence-absence and presence-only data for the target and other species
 
