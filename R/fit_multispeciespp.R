@@ -15,14 +15,17 @@ source("R/functions.R")
 kenya_mask <- terra::rast("data/grids/kenya_mask.tif")
 rescale_travel <- terra::rast("data/grids/rescale_travel.tif")
 covs <- terra::rast("data/grids/covs_mspp.tif")
+ext(covs) <- ext(kenya_mask)
+crs(covs) <- crs(kenya_mask)
+
 
 # rasters for comparison
 prob_present <- terra::rast("data/grids/prob_present_mspp.tif")
-# names(prob_present) <- "prob_present"
-# ext(prob_present) <- ext(kenya_mask)
+names(prob_present) <- "prob_present"
+ext(prob_present) <- ext(kenya_mask)
 rep_occ_rate <- terra::rast("data/grids/reported_occurrence_rate_mspp.tif")
-# names(rep_occ_rate) <- "rep_occ_rate"
-# ext(rep_occ_rate) <- ext(kenya_mask)
+names(rep_occ_rate) <- "rep_occ_rate"
+ext(rep_occ_rate) <- ext(kenya_mask)
 
 # load the presence-absence and presence-only data for the target and other species
 
@@ -64,6 +67,7 @@ pred_po_random_bg_logistic <- sdm_predict(
   model = model_po_random_bg_logistic,
   covariates = covs
 )
+names(pred_po_random_bg_logistic) <- "predicted_distribution_rand_bg_logis"
 
 plot(pred_po_random_bg_logistic)
 
@@ -142,7 +146,8 @@ pa_data_keep_idx <- sample.int(nrow(pa_data), n_pa_obs)
 full.mod <- multispeciesPP(sdm.formula = ~ tseas + tmax + trange,
                            bias.formula = ~travel_time_to_cities_2,
                            PA = pa_data[pa_data_keep_idx, ],
-                           PO = po_data_list,
+                           #PO = po_data_list,
+                           PO = po_covs_all_species_list,
                            BG = bg)
 
 # prediction is more difficult
@@ -155,7 +160,7 @@ link_preds <- multispeciesPP::predict.multispeciesPP(full.mod,
 prob_preds <- 1 - exp(-exp(link_preds))
 
 predicted_distribution <- kenya_mask
-names(predicted_distribution) <- "predicted_distribution"
+names(predicted_distribution) <- "predicted_distribution_mpp"
 predicted_distribution[non_na_idx] <- prob_preds[, 1]
 
 # plot(predicted_distribution)
