@@ -67,6 +67,7 @@ pred_po_random_bg_logistic <- sdm_predict(
   model = model_po_random_bg_logistic,
   covariates = covs
 )
+names(pred_po_random_bg_logistic) <- "predicted_distribution_rand_bg_logis"
 
 plot(pred_po_random_bg_logistic)
 
@@ -145,7 +146,8 @@ pa_data_keep_idx <- sample.int(nrow(pa_data), n_pa_obs)
 full.mod <- multispeciesPP(sdm.formula = ~ tseas + tmax + trange,
                            bias.formula = ~travel_time_to_cities_2,
                            PA = pa_data[pa_data_keep_idx, ],
-                           PO = po_data_list,
+                           #PO = po_data_list,
+                           PO = po_covs_all_species_list,
                            BG = bg)
 
 # prediction is more difficult
@@ -158,7 +160,7 @@ link_preds <- multispeciesPP::predict.multispeciesPP(full.mod,
 prob_preds <- 1 - exp(-exp(link_preds))
 
 predicted_distribution <- kenya_mask
-names(predicted_distribution) <- "predicted_distribution"
+names(predicted_distribution) <- "predicted_distribution_mpp"
 predicted_distribution[non_na_idx] <- prob_preds[, 1]
 
 # plot(predicted_distribution)
