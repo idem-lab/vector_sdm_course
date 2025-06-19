@@ -236,13 +236,15 @@ partial_response <- function (model, data, var, type = c("response", "link"), rn
 partial_response_plot <- function(
   model,
   data,
-  var
+  var,
+  scale = c("response", "link")
 ){
   plot(
     partial_response(
       model = model,
       data = data,
-      var = var
+      var = var,
+      type = scale
     ),
     type = "l"
   )

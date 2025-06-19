@@ -62,7 +62,9 @@ summary(model_pa_random_logistic)
 partial_response_plot(
   model = model_pa_random_logistic,
   data = data_pa_random,
-  var = "tmax"
+  var = "tmax",
+  #scale = "link"
+  scale = "response"
 )
 # now do
 # tseas
