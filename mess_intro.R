@@ -122,7 +122,7 @@ plot_mess_local <- ggplot() +
     type = "div",
     palette = "RdBu",
     direction = 1,
-    limit = max(abs(values(mess_drc)), na.rm = TRUE) * c(-1, 1)
+    limit = max(abs(values(mess_somalia)), na.rm = TRUE) * c(-1, 1)
   ) +
   theme_void() +
   labs(fill = "Multivariate\nEnvironmental\nSimilarity")
