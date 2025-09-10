@@ -8,13 +8,14 @@
 library(terra)
 library(geodata)
 library(tidyverse)
+library(tidyterra)
 
 
 # get administrative area for a country
 somalia_shp <- gadm(
    country = "SOM",
    level = 0,
-   path = tempdir()
+   path = "data/downloads"
 )
 
 # have a look at it
@@ -86,16 +87,24 @@ covraster <- raster::brick(covs_somalia)
 mess_somalia <- mess(
   x = covraster,
   v = coord_covs |>
-    select(-ID) |>
+    dplyr::select(-ID) |>
     as.data.frame()
 ) |>
-  rast()
+  # we then convert back to terra for nicer plotting
+  # and mask based on our earlier raster to remove Inf
+  # calculations from NA areas
+  rast() |>
+  mask(covs_somalia[[1]])
 
 # plot the result
 plot(mess_somalia)
 points(somalia_pts)
-# this result is in a unitless format but the closer to zero
-# the value is, the more similar
+
+# this result is in a unitless format but the more above zero
+# the value is, better represented the area is in multivariate
+# space, while values below zero are not represented by the p
+# points, and the lower the values, the more different the
+# environment is in multivariate space
 
 par(mfrow = c(2,2))
 plot(covs_somalia[[1]])
@@ -112,6 +121,11 @@ points(somalia_pts)
 
 par(mfrow = c(1,1))
 
+# make plot limits for diverging palette around zero
+plot_limits <- max(
+  abs(values(mess_somalia)),
+  na.rm = TRUE
+) * c(-1, 1)
 
 # plot with palette that diverges around zero
 plot_mess_local <- ggplot() +
@@ -122,7 +136,7 @@ plot_mess_local <- ggplot() +
     type = "div",
     palette = "RdBu",
     direction = 1,
-    limit = max(abs(values(mess_drc)), na.rm = TRUE) * c(-1, 1)
+    limit = plot_limits
   ) +
   theme_void() +
   labs(fill = "Multivariate\nEnvironmental\nSimilarity")
