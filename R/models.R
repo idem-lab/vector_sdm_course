@@ -394,10 +394,62 @@ plot(c(prob_present, pred_pa_random_correlated_logistic))
 
 ##### a badly specified model
 
-model_pa_random_poisson_quad <- glm(
-  presence ~ I(tmax^2),
-  data = data_pa_random ,
-  family = stats::poisson()
-)
-summary(model_pa_random_poisson_quad)
+# this is a perfectly fine model done above
+# model_pa_random_logistic <- glm(
+#   presence ~ tseas + tmax + trange,
+#   data = data_pa_random,
+#   family = stats::binomial()
+# )
+
+# this is a horridly misspecified model
+# there is also some other very weird probelm going on
+# it fits fine in glm, however the assign operation is causing
+# R to abort 
+
+# fails
+# model_pa_random_poisson_quad <- glm(
+#   presence ~ I(tmax^2),
+#   data = data_pa_random,
+#   family = stats::poisson()
+# )
+# 
+# fails
+# z <- glm(
+#   presence ~ I(tmax^2),
+#   data = data_pa_random,
+#   family = stats::poisson()
+# )
+#
+# fails
+# assign(
+#   x = "zzz",
+#   value = glm(
+#       presence ~ I(tmax^2),
+#       data = data_pa_random,
+#       family = stats::poisson()
+#     )
+# )
+#
+#
+# works
+# saveRDS(
+#   glm(
+#     presence ~ I(tmax^2),
+#     data = data_pa_random,
+#     family = stats::poisson()
+#   ),
+#   file = "model_bad.RDS"
+# )
+# z <- readRDS("model_bad.RDS")
+# 
+# works
+# z <- glm(
+#   presence ~ I(tmax^2),
+#   data = data_pa_random[1:10,],
+#   family = stats::poisson()
+# )
+
+
+
+
 

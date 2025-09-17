@@ -32,8 +32,21 @@ testZeroInflation(simulationOutput_po_rbg_logistic)
 summary(model_pa_random_poisson_quad)
 
 # assess the residual
+
+# assigning the model per models.R causes R to abort
+# simulationOutput_pa_random_poisson_quad <- simulateResiduals(
+#   fittedModel = model_pa_random_poisson_quad,
+#   plot = FALSE
+# )
+
+# this is a hack to get around this issue whil still producing the
+# awful model
 simulationOutput_pa_random_poisson_quad <- simulateResiduals(
-  fittedModel = model_pa_random_poisson_quad,
+  fittedModel = glm(
+    presence ~ I(tmax^2),
+    data = data_pa_random,
+    family = stats::poisson()
+  ),
   plot = FALSE
 )
 
