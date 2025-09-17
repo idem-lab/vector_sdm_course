@@ -390,3 +390,14 @@ plot(pred_pa_random_correlated_logistic)
 
 
 plot(c(prob_present, pred_pa_random_correlated_logistic))
+
+
+##### a badly specified model
+
+model_pa_random_poisson_quad <- glm(
+  presence ~ I(tmax^2),
+  data = data_pa_random ,
+  family = stats::poisson()
+)
+summary(model_pa_random_poisson_quad)
+
