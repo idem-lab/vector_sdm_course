@@ -31,10 +31,10 @@ species_df <- read_csv("data/tabular/species_df.csv")
 covs <- bc_kenya[[c(4,5,7)]]
 names(covs) <- c("tseas", "tmax", "trange")
 
-terra::writeRaster(
-  x = covs,
-  filename = "data/grids/covariates.tif"
-)
+# terra::writeRaster(
+#   x = covs,
+#   filename = "data/grids/covariates.tif"
+# )
 
 
 ### Model: logistic regression of random presence-absence data
