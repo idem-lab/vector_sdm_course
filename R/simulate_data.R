@@ -31,7 +31,8 @@ names(bias) <- "bias"
 
 terra::writeRaster(
   x = bias,
-  filename = "data/grids/bias.tif"
+  filename = "data/grids/bias.tif",
+  overwrite = TRUE
 )
 
 # generate the fake 'true' relative abundance raster
